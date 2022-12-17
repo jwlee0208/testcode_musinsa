@@ -23,4 +23,16 @@ public class ProductOptionController {
         return productOptionService.getProductOptionInfo(productName, optionName);
     }
 
+    /**
+     *
+     * @param type : increase, decrease
+     * @param productName
+     * @param optionName
+     * @param updateCnt
+     * @return
+     */
+    @RequestMapping(value = "/{type}/{productName}/{optionName}/{updateCnt}")
+    public JSONObject updateProductOptionCnt(@PathVariable String type, @PathVariable String productName, @PathVariable String optionName, @PathVariable int updateCnt) {
+        return productOptionService.changeProductOptionCnt(productName, optionName, updateCnt, type);
+    }
 }

@@ -14,4 +14,6 @@ public interface ProductOptionRepository extends JpaRepository<ProductOption, Pr
     public List<ProductOption> findAllByProductName(String productName);
 
     public Optional<ProductOption> findByProductNameAndOptionName(String productName, String optionName);
+
+    public ProductOption save(ProductOption productOption);
 }

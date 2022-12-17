@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -36,6 +37,55 @@ public class ProductOptionService {
         resObj.put("returnCode", productOption.isPresent() ? "1" : "9999");
         resObj.put("returnData", productOption.isPresent() ? productOption.get() : null);
 
+        return resObj;
+    }
+
+    public JSONObject changeProductOptionCnt(String productName, String optionName, int updateCnt, String type) {
+
+        JSONObject resObj = new JSONObject();
+        String returnCode   = "1";
+        String returnMsg    = "success";
+
+        // to-do
+        boolean isValidReqParams = true;
+
+        if (isValidReqParams) {
+            Optional<ProductOption> productOption = productOptionRepository.findByProductNameAndOptionName(productName, optionName);
+            if (productOption.isPresent()) {
+                ProductOption productOptionObj = productOption.get();
+                int productOptionCnt = productOptionObj.getProductOptionCnt();
+                int updateProductOptionCnt = productOptionCnt;
+                if (type.equals("increase")) {
+                    updateProductOptionCnt += updateCnt;
+                } else if (type.equals("decrease")) {
+                    updateProductOptionCnt -= updateCnt;
+                }
+
+                if (updateProductOptionCnt < 0) {
+                    returnCode  = "2000";
+                    returnMsg   = "Can not update as minus value";
+                } else {
+                    AtomicInteger atomicProductOptionCnt = new AtomicInteger(productOptionCnt);
+                    boolean isSameProductOptionCnt = atomicProductOptionCnt.compareAndSet(productOptionCnt, updateProductOptionCnt);
+                    if (isSameProductOptionCnt) {
+                        productOptionObj.setProductOptionCnt(updateProductOptionCnt);
+                        ProductOption updatedProductOption = productOptionRepository.save(productOptionObj);
+                        resObj.put("returnData", updatedProductOption);
+                    } else {
+                        returnCode  = "3000";
+                        returnMsg   = "data sync issue";
+                    }
+                }
+            } else {
+                returnCode  = "9999";
+                returnMsg   = "no data";
+            }
+        } else {
+            returnCode  = "1000";
+            returnMsg   = "invalid param";
+        }
+        resObj.put("returnCode" , returnCode);
+        resObj.put("returnMsg"  , returnMsg);
         return resObj;
     }
 
